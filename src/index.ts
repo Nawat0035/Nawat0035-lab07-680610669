@@ -2,13 +2,13 @@
 import express, { type Request, type Response } from "express";
 import morgan from "morgan";
 
-import { students } from "@db/db.js";
-import { type Student } from "@libs/types.js";
+import { students } from "./db/db.js";
+import { type Student, type Course } from "./libs/types.js";
 import {
   zStudentDeleteBody,
   zStudentPostBody,
   zStudentPutBody,
-} from "@libs/studentValidator.js";
+} from "./libs/studentValidator.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -195,7 +195,7 @@ app.delete("/api/students", (req: Request, res: Response) => {
 app.get("/api/me", (_req: Request, res: Response) => {
   return res.status(200).json({
     ok: true,
-    fullName: "ณวัฒน์ เรืองเดชาวิวัฒน์",
+    fullName: "ณวัฒน์",
     studentId: "650610669",
   });
 });
