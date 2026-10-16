@@ -2,7 +2,7 @@
 import express, { type Request, type Response } from "express";
 import morgan from "morgan";
 
-import { students } from "@db/db.js";
+import { students } from "./db/db.js";
 import { type Student } from "@libs/types.js";
 import {
   zStudentDeleteBody,
