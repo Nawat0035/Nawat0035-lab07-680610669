@@ -1,16 +1,14 @@
-import { type Student, type Course, type Enrollment } from "../libs/types.js";
-
-
-export const students: Student[] = [
+import { type Student, type Course } from "@libs/types.js";
+export let students: Student[] = [
   {
-    studentId: "680610001",
+    studentId: "650610001",
     firstName: "Matt",
     lastName: "Damon",
     program: "CPE",
     programId: 101,
   },
   {
-    studentId: "680610002",
+    studentId: "650610002",
     firstName: "Cillian",
     lastName: "Murphy",
     program: "CPE",
@@ -18,7 +16,7 @@ export const students: Student[] = [
     courses: [261207, 261497],
   },
   {
-    studentId: "680615003",
+    studentId: "650610003",
     firstName: "Emily",
     lastName: "Blunt",
     program: "ISNE",
@@ -27,7 +25,7 @@ export const students: Student[] = [
   },
 ];
 
-export const courses: Course[] = [
+export let courses: Course[] = [
   {
     courseId: 261207,
     courseTitle: "Basic Computer Engineering Lab",
@@ -41,31 +39,6 @@ export const courses: Course[] = [
   {
     courseId: 269101,
     courseTitle: "Introduction to Information Systems and Network Engineering",
-    instructors: ["KENNETH COSH"],
+    instructors: ["Kenneth Cosh"],
   },
 ];
-
-export const enrollments: Enrollment[] = [
-  {
-    studentId: "680610002",
-    courseId: 261207,
-  },
-  {
-    studentId: "680610002",
-    courseId: 261497,
-  },
-  {
-    studentId: "680615003",
-    courseId: 269101,
-  },
-  {
-    studentId: "680615003",
-    courseId: 261497,
-  },
-];
-
-export const DB = {
-  students,
-  courses,
-  enrollments,
-};
