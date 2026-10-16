@@ -2,7 +2,7 @@
 import express, { type Request, type Response } from "express";
 import morgan from "morgan";
 
-import { students } from "./db/db.js";
+import { students } from "@db/db.js";
 import { type Student } from "@libs/types.js";
 import {
   zStudentDeleteBody,
@@ -23,189 +23,180 @@ app.get("/", (_req: Request, res: Response) => {
 });
 
 // GET /api/students
-// Get all students or filter by studentId and/or program
+// Get all students, filter by studentId and/or program
 app.get("/api/students", (req: Request, res: Response) => {
-  const studentId = req.query.studentId;
-  const program = req.query.program;
+  try {
+    const studentId = req.query.studentId;
+    const program = req.query.program;
 
-  // Validate studentId query parameter if provided
-  if (studentId !== undefined) {
-    if (
-      typeof studentId !== "string" ||
-      !/^\d{9}$/.test(studentId)
-    ) {
-      return res.status(400).json({
-        ok: false,
-        message: "Student Id must contain 9 characters",
-      });
+    let filteredStudents = [...students];
+
+    if (typeof studentId === "string" && studentId !== "") {
+      filteredStudents = filteredStudents.filter(
+        (student) => student.studentId === studentId
+      );
     }
+
+    if (typeof program === "string" && program !== "") {
+      filteredStudents = filteredStudents.filter(
+        (student) => student.program === program
+      );
+    }
+
+    return res.status(200).json({
+      ok: true,
+      students: filteredStudents,
+    });
+  } catch {
+    return res.status(500).json({
+      ok: false,
+      message: "Something went wrong, please try again",
+    });
   }
-
-  // Filter using both conditions when both are provided
-  let filteredStudents = [...students];
-
-  if (typeof studentId === "string") {
-    filteredStudents = filteredStudents.filter(
-      (student) => student.studentId === studentId
-    );
-  }
-
-  if (typeof program === "string") {
-    filteredStudents = filteredStudents.filter(
-      (student) => student.program === program
-    );
-  }
-
-  return res.status(200).json({
-    ok: true,
-    students: filteredStudents,
-  });
 });
 
 // POST /api/students
 // Add a new student
 app.post("/api/students", (req: Request, res: Response) => {
-  const result = zStudentPostBody.safeParse(req.body);
+  try {
+    const result = zStudentPostBody.safeParse(req.body);
 
-  if (!result.success) {
-    return res.status(400).json({
+    if (!result.success) {
+      return res.status(400).json({
+        ok: false,
+        message: "Validation failed",
+        errors: result.error.issues[0]?.message,
+      });
+    }
+
+    const body = result.data as Student;
+
+    const found = students.find(
+      (student) => student.studentId === body.studentId
+    );
+
+    if (found) {
+      return res.status(409).json({
+        ok: false,
+        message: "Student already exists",
+      });
+    }
+
+    students.push(body);
+
+    res.set("Link", `/api/students?studentId=${body.studentId}`);
+
+    return res.status(201).json({
+      ok: true,
+      student: body,
+    });
+  } catch {
+    return res.status(500).json({
       ok: false,
-      message: "Validation failed",
-      errors: result.error.issues[0]?.message,
+      message: "Something went wrong, please try again",
     });
   }
-
-  const body = result.data;
-
-  const found = students.find(
-    (student) => student.studentId === body.studentId
-  );
-
-  if (found) {
-    return res.status(409).json({
-      ok: false,
-      message: "Student already exists",
-    });
-  }
-
-  const newStudent = body as Student;
-  students.push(newStudent);
-
-  res.set("Link", `/api/students?studentId=${newStudent.studentId}`);
-
-  return res.status(201).json({
-    ok: true,
-    student: newStudent,
-  });
 });
 
 // PUT /api/students
 // Update an existing student
 app.put("/api/students", (req: Request, res: Response) => {
-  const result = zStudentPutBody.safeParse(req.body);
+  try {
+    const result = zStudentPutBody.safeParse(req.body);
 
-  if (!result.success) {
-    return res.status(400).json({
+    if (!result.success) {
+      return res.status(400).json({
+        ok: false,
+        message: "Validation failed",
+        errors: result.error.issues[0]?.message,
+      });
+    }
+
+    const body = result.data;
+    const foundIndex = students.findIndex(
+      (student) => student.studentId === body.studentId
+    );
+
+    if (foundIndex === -1) {
+      return res.status(404).json({
+        ok: false,
+        message: "Student does not exist",
+      });
+    }
+
+    students[foundIndex] = {
+      ...students[foundIndex],
+      ...body,
+    } as Student;
+
+    res.set("Link", `/api/students?studentId=${body.studentId}`);
+
+    return res.status(200).json({
+      ok: true,
+      message: `Student ${body.studentId} has been updated successfully`,
+      student: students[foundIndex],
+    });
+  } catch {
+    return res.status(500).json({
       ok: false,
-      message: "Validation failed",
-      errors: result.error.issues[0]?.message,
+      message: "Something went wrong, please try again",
     });
   }
-
-  const body = result.data;
-
-  const foundIndex = students.findIndex(
-    (student) => student.studentId === body.studentId
-  );
-
-  if (foundIndex === -1) {
-    return res.status(404).json({
-      ok: false,
-      message: "Student ID does not exist",
-    });
-  }
-
-  const currentStudent = students[foundIndex];
-
-  if (!currentStudent) {
-    return res.status(404).json({
-      ok: false,
-      message: "Student ID does not exist",
-    });
-  }
-
-  const updatedStudent: Student = {
-    ...currentStudent,
-    ...(body.firstName != null && {
-      firstName: body.firstName,
-    }),
-    ...(body.lastName != null && {
-      lastName: body.lastName,
-    }),
-    ...(body.program != null && {
-      program: body.program,
-    }),
-    ...(body.programId != null && {
-      programId: body.programId,
-    }),
-  };
-
-  students[foundIndex] = updatedStudent;
-
-  res.set("Link", `/api/students?studentId=${body.studentId}`);
-
-  return res.status(200).json({
-    ok: true,
-    message: `Student ${body.studentId} has been updated successfully`,
-    student: updatedStudent,
-  });
 });
 
 // DELETE /api/students
-// Delete a student using studentId in the request body
+// Delete a student by studentId from the request body
 app.delete("/api/students", (req: Request, res: Response) => {
-  const result = zStudentDeleteBody.safeParse(req.body);
+  try {
+    const result = zStudentDeleteBody.safeParse(req.body);
 
-  // Invalid request body or studentId
-  if (!result.success) {
-    return res.status(400).json({
+    // Invalid studentId: HTTP 400 Bad Request
+    if (!result.success) {
+      return res.status(400).json({
+        ok: false,
+        message:
+          result.error.issues[0]?.message ??
+          "Student Id must contain 9 characters",
+      });
+    }
+
+    const { studentId } = result.data;
+
+    const foundIndex = students.findIndex(
+      (student) => student.studentId === studentId
+    );
+
+    // Student not found: HTTP 404 Not Found
+    if (foundIndex === -1) {
+      return res.status(404).json({
+        ok: false,
+        message: "Student ID does not exist",
+      });
+    }
+
+    // Remove the student from the array
+    students.splice(foundIndex, 1);
+
+    // Successful deletion: HTTP 200 OK
+    return res.status(200).json({
+      ok: true,
+      message: `Student Id ${studentId} has been deleted`,
+    });
+  } catch {
+    return res.status(500).json({
       ok: false,
-      message:
-        result.error.issues[0]?.message ??
-        "Invalid student ID",
+      message: "Something went wrong, please try again",
     });
   }
-
-  const { studentId } = result.data;
-
-  const foundIndex = students.findIndex(
-    (student) => student.studentId === studentId
-  );
-
-  // Student not found
-  if (foundIndex === -1) {
-    return res.status(404).json({
-      ok: false,
-      message: "Student ID does not exist",
-    });
-  }
-
-  // Delete the student from the array
-  students.splice(foundIndex, 1);
-
-  return res.status(200).json({
-    ok: true,
-    message: `Student Id ${studentId} has been deleted`,
-  });
 });
 
 // GET /api/me
-// Return information about the API author
+// Return the developer's information
 app.get("/api/me", (_req: Request, res: Response) => {
   return res.status(200).json({
     ok: true,
     fullName: "ณวัฒน์ เรืองเดชาวิวัฒน์",
-    studentId: "680610669",
+    studentId: "650610669",
   });
 });
 
