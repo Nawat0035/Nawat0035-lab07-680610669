@@ -28,13 +28,13 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@tsconfig/node-lts": "^24.0.0",
+    "@tsconfig/node-lts": "^24.0.1",
     "@tsconfig/node-ts": "^23.6.4",
     "@types/cors": "^2.8.19",
     "@types/debug": "^4.1.13",
     "@types/express": "^5.0.6",
     "@types/morgan": "^1.9.10",
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.6.5",
     "cross-env": "^10.1.0",
     "nodemon": "^3.1.14",
     "tsc-alias": "^1.9.1",
