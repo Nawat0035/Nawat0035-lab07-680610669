@@ -195,7 +195,7 @@ app.delete("/api/students", (req: Request, res: Response) => {
 app.get("/api/me", (_req: Request, res: Response) => {
   return res.status(200).json({
     ok: true,
-    fullName: "ณวัฒน์",
+    fullName: "ณวัฒน์ เรืองเดชาวิวัฒน์",
     studentId: "680610669",
   });
 });
