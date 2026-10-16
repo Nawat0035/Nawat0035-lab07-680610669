@@ -196,7 +196,7 @@ app.get("/api/me", (_req: Request, res: Response) => {
   return res.status(200).json({
     ok: true,
     fullName: "ณวัฒน์",
-    studentId: "650610669",
+    studentId: "680610669",
   });
 });
 
